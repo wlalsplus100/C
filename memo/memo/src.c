@@ -1,12 +1,16 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
-#define MAX 3000 // ÃÑ Ãß°¡ °¡´ÉÇÑ °èÁ¤ ¼ö
-#define MAX_ID_LENGHT 9 // ¾ÆÀÌµğ, ºñ¹ø ±ÛÀÚ Á¦ÇÑ ¼ö
+#include <stdlib.h>
 
-char ID[MAX][MAX_ID_LENGHT] = { "asdf", "qwer", "zxcv" }; //»ùÇÃ
-char PW[MAX][MAX_ID_LENGHT] = { "sdfg", "rtyu", "ghjk" }; //»ùÇÃ
-char userId[MAX_ID_LENGHT] = { 0, };
+
+#define MAX 3000 // ì´ ì¶”ê°€ ê°€ëŠ¥í•œ ê³„ì • ìˆ˜
+#define MAX_ID_LENGHT 9 // ì•„ì´ë””, ë¹„ë²ˆ ê¸€ì ì œí•œ ìˆ˜
+
+char ID[MAX][MAX_ID_LENGHT]; //ìƒ˜í”Œ
+char PW[MAX][MAX_ID_LENGHT]; //ìƒ˜í”Œ
+char userId[MAX_ID_LENGHT] = { '\0',};
+int userIndex = 0;
 
 struct Member {
 	char id[MAX_ID_LENGHT];
@@ -16,80 +20,148 @@ struct Member {
 
 void memo();
 
-void signup() {
+
+void datasave(int setting) { //ì´ì¬ì˜
+	FILE* idfp = fopen("id.txt", "r+");
+	FILE* pwfp = fopen("pw.txt", "r+");
+	char buffer[MAX_ID_LENGHT];
+	int cnt = 0;
+	if (setting == 1) {
+		while (fgets(buffer, MAX, idfp) != NULL) {
+			buffer[strcspn(buffer, "\n")] = '\0';
+			strcpy(ID[cnt], buffer);
+			cnt++;
+		}
+		cnt = 0;
+		while (fgets(buffer, MAX, pwfp) != NULL) {
+			buffer[strcspn(buffer, "\n")] = '\0';
+			strcpy(PW[cnt], buffer);
+			cnt++;
+		}
+	}
+	else if (setting == 0) {
+		for (int i = 0; i < sizeof(ID) / sizeof(ID[0]); i++) { //IDì˜ ìµœëŒ€ ê°¯ìˆ˜ë§Œí¼(3000) ë°˜ë³µí•¨
+			if (ID[i][1] == '\0') break; //ë§Œì•½ ë” ì €ì¥ëœ IDê°€ ì—†ë‹¤ë©´ ë°˜ë³µì„ ë©ˆì¶¤
+			fprintf(idfp, "%s\n", ID[i]);	//id.txtíŒŒì¼ì— ì“°ê¸°
+			fprintf(pwfp, "%s\n", PW[i]);	//pw.txtíŒŒì¼ì— ì“°ê¸°
+			fflush(idfp); //ì €ì¥
+			fflush(pwfp); //ì €ì¥
+		}
+	}
+
+	fclose(idfp);
+	fclose(pwfp);
+
+	return;
+}
+
+void signup() { //ê¹€ë„ê²½
 	struct Member member;
 
-	printf("È¸¿ø ID¸¦ ÀÔ·ÂÇÏ¼¼¿ä: ");
+	printf("Enter your ID : ");
 	scanf("%s", member.id);
 
-	printf("ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä: ");
+	for (int i = 0; i < sizeof(ID) / sizeof(ID[0]); i++) {
+		if (ID[i][1] == '\0') break;
+		if (strcmp(member.id, ID[i])== 0) {
+			printf("Duplicated username\n");
+			signup();
+			return;
+		}
+	}
+
+	system("cls");
+
+	printf("Enter your Password : ");
 	scanf("%s", member.password);
 
-	printf("ºñ¹Ğ¹øÈ£¸¦ ´Ù½Ã ÀÔ·ÂÇÏ¼¼¿ä: ");
+	system("cls");
+
+	printf("Re-enter your password : ");
 	scanf("%s", member.repassword);
 
 	while (strcmp(member.password, member.repassword) != 0) {
-		printf("ºñ¹Ğ¹øÈ£°¡ ÀÏÄ¡ÇÏÁö ¾Ê½À´Ï´Ù. ´Ù½Ã ÀÔ·ÂÇØÁÖ¼¼¿ä.\n");
+		system("cls");
+		printf("Incorrect password. Please re-enter.\n");
 
-		printf("ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä: ");
+
+		printf("Enter your Password : ");
 		scanf("%s", member.password);
 
-		printf("ºñ¹Ğ¹øÈ£¸¦ ´Ù½Ã ÀÔ·ÂÇÏ¼¼¿ä: ");
+		system("cls");
+
+		printf("Re-enter your Password : ");
 		scanf("%s", member.repassword);
 	}
-
-	printf("È¸¿ø Á¤º¸\n");
+	system("cls");
+	printf("Member information\n");
 	printf("--------------------------\n");
 	printf("ID: %s\n", member.id);
-	printf("ºñ¹Ğ¹øÈ£: %s\n", member.password);
+	printf("Password: %s\n", member.password);
+
+	//ID, PWë°°ì—´ì— member.id ë„£ê³  member.password ë„£ê¸°
+
+	for (int i = 0; i <= sizeof(ID) / sizeof(ID[0]); i++) { //IDì˜ ìµœëŒ€ ê°¯ìˆ˜ë§Œí¼(3000) ë°˜ë³µí•¨
+		if (ID[i][1] == '\0') { //ë§Œì•½ IDê°€ ì €ì¥ë˜ì§€ ì•Šì•˜ë‹¤ë©´
+			strcpy(ID[i], member.id); //IDë¥¼ ì €ì¥í•¨
+			strcpy(PW[i], member.password); //ê°™ì€ ì¸ë±ìŠ¤ì— ë¹„ë²ˆë„ ì €ì¥í•¨
+			break; //ë§Œì•½ ì €ì¥ë˜ì—ˆìœ¼ë‹ˆ ë°˜ë³µì„ ë©ˆì¶¤
+		}
+	}
 }
 
-void Login() {
+void Login() { //ë°•í˜„ì•„
 	char id[MAX_ID_LENGHT], pw[MAX_ID_LENGHT];
 	char yn;
 	int cnt = 0;
 	int isLoggedIn = 0;
-	printf("plase enter your ID : "); //¾ÆÀÌµğ ÀÔ·Â
+	printf("plase enter your ID : "); //ì•„ì´ë”” ì…ë ¥
 	scanf(" %s", id);
-	printf("plase enter your PW : "); //ºñ¹Ğ¹øÈ£ ÀÔ·Â
+	printf("plase enter your PW : "); //ë¹„ë°€ë²ˆí˜¸ ì…ë ¥
 	scanf(" %s", pw);
+
 	for (cnt = 0; cnt < sizeof(ID) / sizeof(ID[0]); cnt++) {
 		if (strcmp(id, ID[cnt]) == 0) {
 			isLoggedIn = 1;
-			break; //¸¸¾à ¾ÆÀÌµğ°¡ ¸Â´ÂÁö È®ÀÎ
+			break; //ë§Œì•½ ì•„ì´ë””ê°€ ë§ëŠ”ì§€ í™•ì¸
 		}
 
 
 	}
 
 	if (!isLoggedIn) {
+		system("cls");
 		printf("Incorrect ID\n");
 		printf("Try again? (y/n)\n");
 		scanf(" %c", &yn);
 		if (yn == 'y') {
-			Login(); // ·Î±×ÀÎ ´Ù½Ã ½ÇÇà
+			system("cls");
+
+			Login(); // ë¡œê·¸ì¸ ë‹¤ì‹œ ì‹¤í–‰
 			return;
 		}
 		else {
 			return;
 		}
 	}
-	 
+
 	isLoggedIn = 0;
 
 	for (cnt = 0; cnt < sizeof(PW) / sizeof(PW[0]); cnt++) {
 		if (strcmp(pw, PW[cnt]) == 0) {
-			isLoggedIn = 1; // ·Î±×ÀÎ ¼º°ø½Ã
+			isLoggedIn = 1; // ë¡œê·¸ì¸ ì„±ê³µì‹œ
 			break;
 		}
 	}
 
 	if (!isLoggedIn) {
+		system("cls");
 		printf("Incorrect PW\n");
 		printf("Try again? (y/n)\n");
 		scanf(" %c", &yn);
 		if (yn == 'y') {
-			Login(); // ·Î±×ÀÎ ´Ù½Ã ½ÇÇà
+			system("cls");
+			Login(); // ë¡œê·¸ì¸ ë‹¤ì‹œ ì‹¤í–‰
 			return;
 		}
 		else {
@@ -97,77 +169,82 @@ void Login() {
 		}
 	}
 
-	 
-	printf("Let's go\n"); //ºñ¹ø, ¾ÆÀÌµğ µÑ ´Ù ¸ÂÀ¸¸é Ãâ¹ßÇÏ°í id¸¦ returnÇÏ±â
+	system("cls");
+	printf("Thank you for using our program.\n==================\n"); //ë¹„ë²ˆ, ì•„ì´ë”” ë‘˜ ë‹¤ ë§ìœ¼ë©´ ì¶œë°œí•˜ê³  idë¥¼ returní•˜ê¸°
 	strcpy(userId, id);
 	memo();
 	return;
 }
 
-void memo() {
-	FILE* fp = fopen("id.txt", "r"); //id ÆÄÀÏÀ» ÀĞ¾î
-	char buffer[MAX] = { 0, }; //ÀĞÀº °ÍÀ» ´ã¾ÆµÑ ¹®ÀÚ¹è¿­
+void memo() { //ë°•ì§€ë¯¼
+	FILE* fp = fopen("id.txt", "r"); //id íŒŒì¼ì„ ì½ì–´
+	char buffer[MAX] = { 0, }; //ì½ì€ ê²ƒì„ ë‹´ì•„ë‘˜ ë¬¸ìë°°ì—´
 
-	fread(buffer, 1, MAX, fp); //ÀüÃ¼ ÀĞ±â
-	fclose(fp); //ÀĞ¾úÀ¸´Ï ´İ±â
-	char* ptr = strtok(buffer, "\n"); //¹®ÀÚ¹è¿­¿¡¼­ \nÀ» Àß¶ó³» ¾Õ¿¡ ÀÖ´Â °÷ÀÇ ÁÖ¼Ò¸¦ ptr¿¡ ÀúÀå
+	fread(buffer, 1, MAX, fp); //ì „ì²´ ì½ê¸°
+	fclose(fp); //ì½ì—ˆìœ¼ë‹ˆ ë‹«ê¸°
+	char* ptr = strtok(buffer, "\n"); //ë¬¸ìë°°ì—´ì—ì„œ \nì„ ì˜ë¼ë‚´ ì•ì— ìˆëŠ” ê³³ì˜ ì£¼ì†Œë¥¼ ptrì— ì €ì¥
 
-	int cnt = 0; //id°¡ ¸î¹øÂ° ÁÙ¿¡ ÀÖ´ÂÁö È®ÀÎ
-	int stop = 0; //¹İº¹¹® Å»Ãâ¿ë
-	while (ptr != NULL)       // ÀÚ¸¥ ¹®ÀÚ¿­ÀÌ ³ª¿ÀÁö ¾ÊÀ» ¶§±îÁö ¹İº¹
+	int cnt = 0; //idê°€ ëª‡ë²ˆì§¸ ì¤„ì— ìˆëŠ”ì§€ í™•ì¸
+	int stop = 0; //ë°˜ë³µë¬¸ íƒˆì¶œìš©
+	while (ptr != NULL)       // ìë¥¸ ë¬¸ìì—´ì´ ë‚˜ì˜¤ì§€ ì•Šì„ ë•Œê¹Œì§€ ë°˜ë³µ
 	{
 
-		if (strcmp(userId, ptr) == 0) { // ·Î±×ÀÎ µÈ id¿Í µ¥ÀÌÅÍº£ÀÌ½º id¸¦ ºñ±³ÇØ¼­ °°Àº °ÍÀ» Ã£¾Æ³¿
-			stop = 1; // °°Àº °ÍÀ» Ã£¾ÒÀ½
-			break; // °°Àº °ÍÀ» Ã£¾ÒÀ¸´Ï ¹İº¹À» ¸ØÃã
+		if (strcmp(userId, ptr) == 0) { // ë¡œê·¸ì¸ ëœ idì™€ ë°ì´í„°ë² ì´ìŠ¤ idë¥¼ ë¹„êµí•´ì„œ ê°™ì€ ê²ƒì„ ì°¾ì•„ëƒ„
+			stop = 1; // ê°™ì€ ê²ƒì„ ì°¾ì•˜ìŒ
+			break; // ê°™ì€ ê²ƒì„ ì°¾ì•˜ìœ¼ë‹ˆ ë°˜ë³µì„ ë©ˆì¶¤
 		}
-		cnt++; // °°Àº °ÍÀ» ¸øÃ£¾ÒÀ¸´Ï ´ÙÀ½ÁÙ ¼ö·Î ¹Ù²Ş
-		ptr = strtok(NULL, "\n"); //¹®ÀÚ¹è¿­¿¡¼­ \nÀ» Àß¶ó³» ¾Õ¿¡ ÀÖ´Â °÷ÀÇ ÁÖ¼Ò¸¦ ptr¿¡ ÀúÀå
+		cnt++; // ê°™ì€ ê²ƒì„ ëª»ì°¾ì•˜ìœ¼ë‹ˆ ë‹¤ìŒì¤„ ìˆ˜ë¡œ ë°”ê¿ˆ
+		ptr = strtok(NULL, "\n"); //ë¬¸ìë°°ì—´ì—ì„œ \nì„ ì˜ë¼ë‚´ ì•ì— ìˆëŠ” ê³³ì˜ ì£¼ì†Œë¥¼ ptrì— ì €ì¥
 	}
 
 
-	if (stop) { //¹İº¹¹®ÀÌ ¸ØÃß¸é (°°Àº °ÍÀ» Ã£¾Ò´Ù¸é)
-		fp = fopen("memo.txt", "r+");  //testÆÄÀÏÀ» r+(ÀĞ±â¼öÁ¤) ¸ğµå·Î ¿­±â
-		char data[MAX] = { 0 }; // ÇÑ ÁÙÀ» ´ã¾ÆµÑ ¹®ÀÚ¹è¿­ ¼±¾ğ
+	if (stop) { //ë°˜ë³µë¬¸ì´ ë©ˆì¶”ë©´ (ê°™ì€ ê²ƒì„ ì°¾ì•˜ë‹¤ë©´)
+		fp = fopen("memo.txt", "r+");  //testíŒŒì¼ì„ r+(ì½ê¸°ìˆ˜ì •) ëª¨ë“œë¡œ ì—´ê¸°
+		char data[MAX] = { 0 }; // í•œ ì¤„ì„ ë‹´ì•„ë‘˜ ë¬¸ìë°°ì—´ ì„ ì–¸
 
 		for (int i = 0; i <= cnt; i++) {
-			fgets(data, MAX, fp); // Ã£¾Æ³½ ÁÙ ¼ö ±îÁö °¡¼­ data¿¡ ÀúÀåÇÔ
+			fgets(data, MAX, fp); // ì°¾ì•„ë‚¸ ì¤„ ìˆ˜ ê¹Œì§€ ê°€ì„œ dataì— ì €ì¥í•¨
 		}
 
-		printf("%sÀÇ ¸Ş¸ğ\n%s", userId, data); // ÀúÀåµÇ¾î ÀÖ´ø ¸Ş¸ğ Ãâ·Â
+		printf("%s's memo\n%s", userId, data); // ì €ì¥ë˜ì–´ ìˆë˜ ë©”ëª¨ ì¶œë ¥
 
 
 		while (1) {
-			char stop; //¹İº¹¹® Å»Ãâ È®ÀÎ¿ë
-			printf("¼öÁ¤ÇÏ½Ã°Ú½À´Ï±î? (y/n)"); //y¿Í nÀ¸·Î ±¸ºĞÇÏ¿© ¸ØÃâÁö ¼öÁ¤ÇÒÁö Á¤ÇÔ
-			scanf(" %c", &stop); // ÀÔ·Â¹öÆÛ ¿À·ù ÁÙÀÌ±â À§ÇØ ¶ç¾î¾²±â
+			char stop; //ë°˜ë³µë¬¸ íƒˆì¶œ í™•ì¸ìš©
+			printf("==================\nEdit your memo? (y/n)"); //yì™€ nìœ¼ë¡œ êµ¬ë¶„í•˜ì—¬ ë©ˆì¶œì§€ ìˆ˜ì •í• ì§€ ì •í•¨
+			scanf(" %c", &stop); // ì…ë ¥ë²„í¼ ì˜¤ë¥˜ ì¤„ì´ê¸° ìœ„í•´ ë„ì–´ì“°ê¸°
+			system("cls");
 
-			if (stop == 'n') break; // nÀÌ¸é ¹İº¹ Å»Ãâ
-			else if (stop == 'y') { // y¸é ¼öÁ¤
-				printf("¸Ş¸ğ¸¦ ÀÔ·ÂÇÏ¼¼¿ä (%d ÀÌ³») : ", MAX); //3000ÀÚ ÀÌ³» ÀÔ·Â¹Şµµ·Ï ¾È³»
-				scanf(" %[^\n]", data); //ÁÙ¹Ù²Ş ÀÌÀü±îÁö ¹Ş¾Æ¼­ data¿¡ ¹ŞÀ½
-				fclose(fp); // ¾Æ±î ¿­¾ú´ø °Í ´İÀ½
-				fopen("memo.txt", "r+"); // »õ·Î ÀĞ±â + ¼öÁ¤À¸·Î ¿­±â
-				FILE* tempFile = fopen("temp.txt", "w"); // tempÆÄÀÏÀ» ¾²±â¸ğµå·Î ¿­±â
+			if (stop == 'n') break; // nì´ë©´ ë°˜ë³µ íƒˆì¶œ
+			else if (stop == 'y') { // yë©´ ìˆ˜ì •
+				system("cls");
+				printf("Enter your memo (Within %d characters) : ", MAX); //3000ì ì´ë‚´ ì…ë ¥ë°›ë„ë¡ ì•ˆë‚´
+				
+				scanf(" %[^\n]", data); //ì¤„ë°”ê¿ˆ ì´ì „ê¹Œì§€ ë°›ì•„ì„œ dataì— ë°›ìŒ
+				fclose(fp); // ì•„ê¹Œ ì—´ì—ˆë˜ ê²ƒ ë‹«ìŒ
+				fp = fopen("memo.txt", "r+"); // ìƒˆë¡œ ì½ê¸° + ìˆ˜ì •ìœ¼ë¡œ ì—´ê¸°
+				FILE* tempFile = fopen("temp.txt", "w"); // tempíŒŒì¼ì„ ì“°ê¸°ëª¨ë“œë¡œ ì—´ê¸°
 				char line[MAX];
 				int currentLine = 0;
 
-				while (fgets(line, MAX, fp)) { // line¿¡ ÇÑÁÙÀ» ¹Ş¾Æ¿À´Âµ¥ nullÀÌ ¾Æ´Ò¶§±îÁö ¹İº¹
-					if (currentLine == cnt) { // ¸¸¾à ¿ì¸®°¡ ¹Ù²Ù±â·Î Çß´ø À¯ÀúÁÙÀÌ¶ó¸é
-						fprintf(tempFile, "%s\n", data); //data·Î ¹Ş¾Æ¿Ô´ø ÀÔ·ÂÀ» tempfile¿¡ ¾¸
+				while (fgets(line, MAX, fp)) { // lineì— í•œì¤„ì„ ë°›ì•„ì˜¤ëŠ”ë° nullì´ ì•„ë‹ë•Œê¹Œì§€ ë°˜ë³µ
+					if (currentLine == cnt) { // ë§Œì•½ ìš°ë¦¬ê°€ ë°”ê¾¸ê¸°ë¡œ í–ˆë˜ ìœ ì €ì¤„ì´ë¼ë©´
+						fprintf(tempFile, "%s\n", data); //dataë¡œ ë°›ì•„ì™”ë˜ ì…ë ¥ì„ tempfileì— ì”€
 					}
 					else {
-						fprintf(tempFile, "%s", line); // ¹Ù²ÙÁö ¾Ê´Â À¯ÀúÁÙÀº ÀÌÀü°ú °°Àº ÁÙÀ» ÀûÀ½
+						fprintf(tempFile, "%s", line); // ë°”ê¾¸ì§€ ì•ŠëŠ” ìœ ì €ì¤„ì€ ì´ì „ê³¼ ê°™ì€ ì¤„ì„ ì ìŒ
 					}
-					currentLine++; // ´ÙÀ½ÁÙ·Î ³Ñ±è
+					currentLine++; // ë‹¤ìŒì¤„ë¡œ ë„˜ê¹€
 				}
 
-				fclose(fp); // ´İ±â
-				fclose(tempFile); //´İ±â
+				fclose(fp); // ë‹«ê¸°
+				fclose(tempFile); //ë‹«ê¸°
 
-				remove("memo.txt"); //ÀÌÀü ¸Ş¸ğÆÄÀÏ »èÁ¦
-				rename("temp.txt", "memo.txt"); //tempÆÄÀÏÀ» memoÆÄÀÏ·Î ÀÌ¸§º¯°æ
-				printf("%sÀÇ ¸Ş¸ğ\n%s\n", userId, data); //¹Ù²ï ¸Ş¸ğ¸¦ º¸¿©ÁÜ
+				remove("memo.txt"); //ì´ì „ ë©”ëª¨íŒŒì¼ ì‚­ì œ
+				if (rename("temp.txt", "memo.txt")) {
+					printf("file isn't change!\n");
+				}//tempíŒŒì¼ì„ memoíŒŒì¼ë¡œ ì´ë¦„ë³€ê²½
+				printf("%s's memo\n%s\n", userId, data); //ë°”ë€ ë©”ëª¨ë¥¼ ë³´ì—¬ì¤Œ
 			}
 		}
 	}
@@ -175,20 +252,28 @@ void memo() {
 }
 
 
-//int main() {
-//	memo("user4");
-//	return 0;
-//}
+
 
 int main() {
 	char ls;
 	while (1)
 	{
-		printf("\nLogin? or Signin?(l / s) or end(e): "); //·Î±×ÀÎ ÇÒ °ÍÀÎÁö °¡ÀÔ ÇÒ °ÍÀÎÁö ¾Æ´Ï¸é ³¡³¾°ÍÀÎÁö ¹®±â
+		printf("\nLogin? or Signin?(l / s) or end(e): "); //ë¡œê·¸ì¸ í•  ê²ƒì¸ì§€ ê°€ì… í•  ê²ƒì¸ì§€ ì•„ë‹ˆë©´ ëë‚¼ê²ƒì¸ì§€ ë¬¸ê¸°
 		scanf(" %c", &ls);
-		if (ls == 'e') break; //¸¸¾à e¸é ÇÁ·Î±×·¥ ³¡³»±â
-		else if (ls == 'l')  Login(); //lÀÌ¸é login°¡±â
-		else if (ls == 's') signup(); //s¸é signIn°¡±â
+		if (ls == 'e') break; //ë§Œì•½ eë©´ í”„ë¡œê·¸ë¨ ëë‚´ê¸°
+		else if (ls == 'l') {
+			datasave(1);
+			Login(); //lì´ë©´ loginê°€ê¸°
+			datasave(0);
+		}
+		else if (ls == 's') {
+			datasave(1);
+			signup();
+			datasave(0);
+		} //së©´ signInê°€ê¸°
+		else {
+			return 0;
+		}
 	}
 
 	return 0;
