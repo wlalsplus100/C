@@ -1,0 +1,39 @@
+입력
+출력
+조건문
+반복문
+배열
+
+메모
+메인
+
+id.txt
+-------
+abcd
+efgh
+ijkl
+mnlo
+---------------
+pw.txt
+--------
+qwerty1234
+qwerty1234
+qwerty1234
+qwerty1234
+---------------
+memo.txt
+--------
+memo1
+memo2
+memo3
+memo4
+
+mnlo를 userID에 받았음
+userID가 있는 줄을 찾아내 저장 (id.txt에서 읽기모드)
+id.txt를 닫음
+memo.txt를 열어 저장한 줄의 memo를 출력함(memo.txt에서 읽기모드)
+memo.txt 닫기
+수정하시겠습니까(y/n) 묻고 대답받기
+y일 경우 memo.txt를 다시 열어 memo할 내용 입력 받고 저장(memo.txt에서 쓰기모드)
+다시 수정된 결과를 보여주고 마찬가지로 수정하시겠습니까 보여줌
+n일 경우 return
